@@ -1,9 +1,12 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.User;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import com.example.demo.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +25,9 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserRepository userRepository;
 
     // -------------------- Signup --------------------
     @PostMapping("/signup")
@@ -67,5 +73,22 @@ public class AuthController {
         response.put("role", user.getRole());
         response.put("id", user.getId().toString());
         return response;
+    }
+
+    // -------------------- Current User --------------------
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        String email = authentication.getName(); // JWT subject = email
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    // Don’t return password hash
+                    Map<String, Object> dto = new HashMap<>();
+                    dto.put("id", user.getId());
+                    dto.put("email", user.getEmail());
+                    dto.put("role", user.getRole());
+                    dto.put("username", user.getUsername());
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

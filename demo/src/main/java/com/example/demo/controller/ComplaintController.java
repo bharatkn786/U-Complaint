@@ -53,4 +53,12 @@ public class ComplaintController {
                                   @RequestParam Complaint.Status status) {
         return complaintService.updateComplaintStatus(id, status);
     }
+
+    // ✅ Warden/Admin update complaint priority
+    @PutMapping("/{id}/priority")
+    @PreAuthorize("hasAnyRole('ADMIN','WARDEN')")
+    public Complaint updatePriority(@PathVariable Long id,
+                                    @RequestParam Complaint.Priority priority) {
+        return complaintService.updateComplaintPriority(id, priority);
+    }
 }

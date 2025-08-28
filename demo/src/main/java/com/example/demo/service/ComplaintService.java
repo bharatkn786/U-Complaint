@@ -37,4 +37,12 @@ public class ComplaintService {
         complaint.setStatus(status);
         return complaintRepository.save(complaint);
     }
+
+    // ✅ Update complaint priority
+    public Complaint updateComplaintPriority(Long id, Complaint.Priority priority) {
+        Complaint complaint = complaintRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Complaint not found"));
+        complaint.setPriority(priority);
+        return complaintRepository.save(complaint);
+    }
 }
