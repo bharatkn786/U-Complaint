@@ -41,20 +41,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
             try {
                 email = jwtUtil.extractUsername(token); // subject (email)
-
-                // also log the role we see in incoming token
-                String roleInToken = jwtUtil.extractRole(token);
+                String roleInToken = jwtUtil.extractRole(token); // role from token (ADMIN, STUDENT, etc.)
                 logger.info("📌 Incoming Token Email=" + email + " | Role=" + roleInToken);
-
-                // regenerate a fresh token for comparison
-                String regenerated = jwtUtil.generateToken(email, roleInToken);
-                logger.info("🆕 Regenerated Token: " + regenerated);
 
             } catch (Exception e) {
                 logger.debug("Invalid JWT while extracting username: " + e.getMessage());
             }
         }
-
 
         // If we got an email from token and no authentication exists yet
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -62,10 +55,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
                 if (jwtUtil.validateToken(token, userDetails)) {
-                    String role = jwtUtil.extractRole(token); // e.g. ROLE_ADMIN
+                    String rawRole = jwtUtil.extractRole(token);  // e.g. ADMIN
+                    String springRole = rawRole.startsWith("ROLE_") ? rawRole : "ROLE_" + rawRole;
 
-                    // Build authority from token’s role
-                    SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
+                    // Build authority with Spring-style role
+                    SimpleGrantedAuthority authority = new SimpleGrantedAuthority(springRole);
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
@@ -76,7 +70,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    logger.info("✅ JWT Auth Success | Email=" + email + " | Role=" + role);
+                    logger.info("✅ JWT Auth Success | Email=" + email + " | Role=" + springRole);
                 }
             } catch (Exception e) {
                 logger.debug("❌ JWT authentication failed: " + e.getMessage());

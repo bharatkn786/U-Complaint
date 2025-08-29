@@ -22,13 +22,15 @@ public class MyUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        // ✅ Map DB role (e.g. "ADMIN") directly as GrantedAuthority
+        // ✅ Map DB role to Spring Security role format "ROLE_<ROLE_NAME>"
+        String springRole = "ROLE_" + user.getRole().name(); // e.g. ROLE_ADMIN, ROLE_WARDEN
+
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority(user.getRole()))
+                Collections.singletonList(new SimpleGrantedAuthority(springRole))
         );
     }
 }

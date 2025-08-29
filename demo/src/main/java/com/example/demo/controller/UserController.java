@@ -17,10 +17,9 @@ public class UserController {
         this.userService = userService;
     }
 
-    // Get all users (only for ADMIN)
-
+    // ✅ Get all users (only for ADMIN)
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")  // ROLE_ADMIN required
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }

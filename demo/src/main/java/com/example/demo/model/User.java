@@ -14,6 +14,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User implements UserDetails {
 
     @Id
@@ -28,16 +29,18 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    private String role; // e.g., STUDENT, WARDEN, ADMIN
+    @Enumerated(EnumType.STRING)  // ✅ safer than plain String
+    @Column(nullable = false)
+    private Role role;
 
-    private String staffId;
-
-    private String department;
+    private String staffId;   // for faculty/warden
+    private String department; // for faculty
 
     // --- UserDetails methods ---
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority( role));
+        // ✅ Spring Security expects roles like "ROLE_ADMIN"
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
@@ -47,7 +50,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.email; // we use email as username
+        return this.email; // ✅ email is the username
     }
 
     @Override
@@ -62,18 +65,7 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() { return true; }
 
-
-    public String getRole() {
-        return  this.role;
+    public enum Role {
+        STUDENT, WARDEN, FACULTY, ADMIN
     }
-
-    public String getEmail() {
-        return this.email;
-    }
-
-    public void setPassword(String encoded) {
-        this.password = encoded;
-    }
-
-
 }

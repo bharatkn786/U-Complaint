@@ -13,40 +13,58 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder   // ✅ enables Complaint.builder()
 public class Complaint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Basic Complaint Info
     @Column(nullable = false)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
+    // Extra Fields (matching frontend form)
+    @Column(nullable = false)
+    private String category;
+
+    @Column(nullable = false)
+    private String subcategory;
+
+    @Column(nullable = false)
+    private String location;
+
+    @Column(nullable = false, length = 15)
+    private String contactNumber;
+
+    // Enums
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.NEW;
+    private Status status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Priority priority = Priority.MEDIUM; // ✅ default priority
+    private Priority priority;
 
+    // Audit Fields
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // ✅ Link complaint to User (STUDENT creates complaints)
+    // Relationship with User
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnoreProperties({"password", "authorities"})
     private User user;
 
+    // ✅ Enums
     public enum Status {
-        NEW, IN_PROGRESS, RESOLVED
+        NEW, PENDING, RESOLVED
     }
 
     public enum Priority {

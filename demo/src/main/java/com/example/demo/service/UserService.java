@@ -2,7 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,8 +10,12 @@ import java.util.List;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    // ✅ Constructor injection (better than field @Autowired)
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     // Save user (used during signup)
     public User saveUser(User user) {
@@ -26,14 +30,29 @@ public class UserService {
     // Get user by email
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
+    }
+
+    // Get user by id
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+    }
+
+    // Update user
+    public User updateUser(Long id, User updatedUser) {
+        User existingUser = getUserById(id);
+        existingUser.setName(updatedUser.getName());
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setRole(updatedUser.getRole());
+        existingUser.setDepartment(updatedUser.getDepartment());
+        existingUser.setStaffId(updatedUser.getStaffId());
+        return userRepository.save(existingUser);
     }
 
     // Delete user by id
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
-        }
-        userRepository.deleteById(id);
+        User user = getUserById(id); // throws if not found
+        userRepository.delete(user);
     }
 }

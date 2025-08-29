@@ -21,11 +21,13 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // Generate token with email + role
+    // Generate token with email + role (role stored WITHOUT ROLE_ prefix)
     public String generateToken(String email, String role) {
+        String rawRole = role.startsWith("ROLE_") ? role.substring(5) : role; // remove prefix if present
+
         return Jwts.builder()
                 .setSubject(email)
-                .claim("role", role) // e.g. ROLE_ADMIN
+                .claim("role", rawRole) // store ADMIN, STUDENT, WARDEN only
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -37,7 +39,7 @@ public class JwtUtil {
         return parseClaims(token).getSubject();
     }
 
-    // Extract role
+    // Extract role (always returns raw form: ADMIN, STUDENT, WARDEN)
     public String extractRole(String token) {
         Object r = parseClaims(token).get("role");
         return r != null ? r.toString() : null;

@@ -35,10 +35,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()  // signup/login allowed
-                        .requestMatchers("/users/**").hasRole("ADMIN") // only ADMIN authority
-                        .requestMatchers("/complaints/warden/**").hasAuthority("WARDEN")
-                        .requestMatchers("/complaints/student/**").hasAuthority("STUDENT")
+                        // Public endpoints
+                        .requestMatchers("/auth/**").permitAll()
+
+                        // Admin-only user management
+                        .requestMatchers("/users/**").hasRole("ADMIN")
+
+                        // Complaints endpoints (role-specific access handled in controller)
+                        .requestMatchers("/api/complaints/**")
+                        .hasAnyRole("STUDENT","WARDEN","FACULTY","ADMIN")
+
+                        // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -66,14 +73,14 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    // ✅ Define CORS rules
+    // CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // React frontend
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true); // Allow cookies/tokens
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -8,23 +8,22 @@ import java.util.List;
 
 public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
 
-    // Fetch complaints of a user by their ID
+    // ✅ Get complaints of a specific user
     List<Complaint> findByUser_Id(Long userId);
 
-    // Fetch all complaints along with user details
+    // ✅ Get all complaints with user details
     @Query("SELECT c FROM Complaint c JOIN FETCH c.user")
     List<Complaint> findAllWithUser();
 
-    // Fetch complaints by status
+    // ✅ Filter by Status
     List<Complaint> findByStatus(Complaint.Status status);
 
-    // Optional: Fetch complaints by user & status
-    List<Complaint> findByUser_IdAndStatus(Long userId, Complaint.Status status);
-
-    // Fetch complaints by priority
+    // ✅ Filter by Priority
     List<Complaint> findByPriority(Complaint.Priority priority);
 
-    // Fetch complaints by status + priority (if needed)
+    // ✅ Filter by both Status and Priority
     List<Complaint> findByStatusAndPriority(Complaint.Status status, Complaint.Priority priority);
 
+    // ✅ NEW: Get complaints by categories (for Warden & Faculty)
+    List<Complaint> findByCategoryIn(List<String> categories);
 }
